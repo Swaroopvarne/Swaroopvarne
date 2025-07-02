@@ -24,7 +24,7 @@ import com.aevorix.user_service.repo.UserRepository;
 import com.aevorix.user_service.utils.Urls;
 
 @RestController
-@RequestMapping(Urls.BASEURL_USER)
+//@RequestMapping(Urls.BASEURL_USER)
 public class UserController {
 
 	@Autowired
@@ -95,4 +95,14 @@ public class UserController {
 	public ResponseEntity<String> checkout() {
 		return ResponseEntity.ok("Checkout successful!");
 	}
+	
+	@GetMapping("/user/secure")
+    public String securedHello() {
+        return "Hello, this is a secured user endpoint!";
+    }
+
+    @GetMapping("/user/public/hello")
+    public String publicHello() {
+        return "Hello, this is a public user endpoint!";
+    }
 }

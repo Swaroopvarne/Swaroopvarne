@@ -1,14 +1,13 @@
-package com.aevorix.user_auth;
+package com.aevorix.api_gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-//@EnableConfigurationProperties(JwtProperties.class)
-public class UserAuthApplication {
+public class ApiGatewayApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(UserAuthApplication.class, args);
+		SpringApplication.run(ApiGatewayApplication.class, args);
 	}
 
 }

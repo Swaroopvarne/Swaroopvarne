@@ -42,7 +42,7 @@ public class AuthController {
 		user.setMobileNumber(user.getMobileNumber());
 		user.setStatus("A");
 		userRepository.save(user);
-		return ResponseEntity.ok("User registered successfully");
+		return ResponseEntity.ok("Token User registered successfully");
 	}
 
 	@PostMapping("/login")
