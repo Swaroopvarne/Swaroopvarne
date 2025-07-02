@@ -1,7 +1,5 @@
 server:
   port: 8091
-  servlet:
-      context-path: /user-auth
 
 spring:
   application:
@@ -35,7 +33,7 @@ eureka:
     prefer-ip-address: true
 
 jwt:
-   secret: '3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007a'
+   secret: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007a
    expirationMs: 1800000
 
 
