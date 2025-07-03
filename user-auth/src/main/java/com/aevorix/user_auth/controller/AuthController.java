@@ -1,5 +1,6 @@
 package com.aevorix.user_auth.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.aevorix.common_service.apiResponse.BaseResponse;
 import com.aevorix.user_auth.AuthRequest.AuthRequest;
 import com.aevorix.user_auth.authenticationFilter.JwtUtil;
 import com.aevorix.user_auth.repo.UserRepository;
@@ -32,18 +34,45 @@ public class AuthController {
 	private final JwtUtil jwtUtil;
 
 	@PostMapping("/register")
-	public ResponseEntity<?> register(@RequestBody User user) {
-		if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-			return ResponseEntity.badRequest().body("User email already exists");
-		}
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-		user.setRole("ROLE_USER");
-		user.setUsername(user.getUsername());
-		user.setMobileNumber(user.getMobileNumber());
-		user.setStatus("A");
-		userRepository.save(user);
-		return ResponseEntity.ok("Token User registered successfully");
+	public ResponseEntity<BaseResponse<String>> register(@RequestBody User user) {
+	    try {
+	        // Validate input fields
+	        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
+	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Email is required", null, LocalDateTime.now()));
+	        }
+	        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Username is required", null, LocalDateTime.now()));
+	        }
+	        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Password is required", null, LocalDateTime.now()));
+	        }
+	        if (user.getMobileNumber() == null || user.getMobileNumber().trim().isEmpty()) {
+	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Mobile number is required", null, LocalDateTime.now()));
+	        }
+
+	        // Check if email already exists
+	        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+	            return ResponseEntity.badRequest().body(new BaseResponse<>(409, "User with this email already exists", null, LocalDateTime.now()));
+	        }
+
+	        // Prepare and save user
+	        user.setPassword(passwordEncoder.encode(user.getPassword()));
+	        user.setRole(user.getRole());
+	        user.setStatus("A");
+	        user.setCreatedAt(LocalDateTime.now());
+
+	        userRepository.save(user);
+
+	        return ResponseEntity.ok(new BaseResponse<>(200, "User registered successfully", "Success", LocalDateTime.now()));
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body(
+	                new BaseResponse<>(500, "An unexpected error occurred", e.getMessage(), LocalDateTime.now())
+	        );
+	    }
 	}
+
 
 	@PostMapping("/login")
 	public ResponseEntity<?> login(@RequestBody AuthRequest request) {
