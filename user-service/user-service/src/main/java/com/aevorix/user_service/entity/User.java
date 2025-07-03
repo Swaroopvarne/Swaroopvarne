@@ -19,24 +19,29 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true, length = 50)
+	@Column
 	private String username;
 
-	@Column(nullable = false)
+	@Column
 	private String password;
 
-	@Column(nullable = false, unique = true, length = 100)
+	@Column
 	private String email;
-	
-	@Column(name="mobile_Number", nullable = false, unique = true, length = 10)
+
+	@Column
+	private int otp;
+
+	private LocalDateTime otpGeneratedAt;
+
+	@Column(name = "mobile_Number", nullable = false, unique = true, length = 13)
 	private String mobileNumber;
-	
-	@Column(name="role")
+
+	@Column(name = "role")
 	private String role;
 
-	@Column(name = "created_at", nullable = false)
+	@Column(name = "created_at")
 	private LocalDateTime createdAt;
 
-	@Column(name = "status", nullable = false)
-	private String status; 
+	@Column(name = "status")
+	private String status;
 }

@@ -25,7 +25,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 		System.out.println("==> Request path: " + path); // DEBUG
 
 		// ✅ Allow all /api/auth/** requests (like login/register)
-		if (path != null && (path.equals("/api/auth/login") || path.startsWith("/api/auth"))) {
+		if (path != null && ( path.equals("/api/auth/login") || 
+			    path.equals("/user-service/api/auth/login") ||
+			    path.startsWith("/api/auth/**") || 
+			    path.startsWith("/user-service/api/auth/registerUser") ||
+			    path.startsWith("/user-service/api/auth/verifyRegister")
+			)) {
 			return chain.filter(exchange);
 		}
 
