@@ -26,7 +26,7 @@ import com.aevorix.user_auth.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/public/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -38,7 +38,7 @@ public class AuthController {
 	@PostMapping("/registerUser")
 	public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
 		if (userRepository.findByEmail(req.getEmail()).isPresent()) {
-			return ResponseEntity.badRequest().body(BaseResponse.error(400, "Email already registered"));
+			return ResponseEntity.ok().body(BaseResponse.error(400, "Email already registered"));
 		}
 		if (userRepository.findByMobileNumber(req.getMobileNo()).isPresent()) {
 			return ResponseEntity.badRequest().body(BaseResponse.error(400, "Mobile number already registered"));

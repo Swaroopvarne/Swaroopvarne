@@ -12,7 +12,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
             .info(new Info()
-                .title("Common Service API")
+                .title("User Auth API")
                 .version("1.0")
                 .description("API documentation for the Common Service"));
     }

@@ -52,14 +52,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 	 * Matches paths which should be public (no JWT required)
 	 */
 	private boolean isPublicPath(String path) {
-		return path != null && (path.equals("/api-gateway/user-auth/api/auth/login")
-				|| path.equals("/api-gateway/user-auth/api/auth/registerUser")
+		return path != null && (path.equals("/api-gateway/user-auth/api/public/auth/login")
+				|| path.equals("/api-gateway/user-auth/api/public/auth/registerUser")
 				|| path.equals("/api-gateway/user-auth/api/auth/verifyRegister")
-				|| path.startsWith("/api-gateway/user-auth/swagger-ui")
-				|| path.equals("/api-gateway/user-auth/swagger-ui.html")
-				|| path.equals("/api-gateway/user-auth/v3/api-docs")
-				|| path.startsWith("/api-gateway/user-auth/swagger-resources")
-				|| path.startsWith("/api-gateway/user-auth/webjars"));
+				|| path.startsWith("/api-gateway/swagger-ui")
+				|| path.equals("/api-gateway/swagger-ui.html")
+				|| path.equals("/api-gateway/v3/api-docs")
+				|| path.startsWith("/api-gateway/swagger-resources")
+				|| path.startsWith("/api-gateway/webjars"));
 	}
 
 	@Override

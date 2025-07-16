@@ -1,7 +1,7 @@
 server:
   port: 8092
   servlet:
-      context-path: /user-service
+    context-path: /user-service
 
 spring:
   application:
@@ -19,7 +19,7 @@ spring:
     show-sql: true
     properties:
       hibernate:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   devtools:
     restart:
@@ -34,3 +34,9 @@ eureka:
   instance:
     prefer-ip-address: true
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    operationsSorter: method
+    tagsSorter: alpha
