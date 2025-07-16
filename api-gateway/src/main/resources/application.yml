@@ -16,14 +16,32 @@ spring:
             - id: user-auth
               uri: lb://USER-AUTH
               predicates:
-                - Path=/api/auth/**
+                - Path=/api-gateway/user-auth/**
               filters:
-                - RewritePath=/api/auth/(?<segment>.*), /api/auth/${segment}
+                - RewritePath=/api-gateway/user-auth/(?<segment>.*), /${segment}
 
             - id: user-service
               uri: lb://USER-SERVICE
               predicates:
-                - Path=/user-service/**
+                - Path=/api-gateway/user-service/**
+              filters:
+                - RewritePath=/api-gateway/user-service/(?<segment>.*), /${segment}
+
+            # Swagger UI & OpenAPI docs from user-auth (through common prefix)
+            - id: user-auth-swagger
+              uri: lb://USER-AUTH
+              predicates:
+                - Path=/api-gateway/user-auth/swagger-ui.html
+
+            - id: user-auth-api-docs
+              uri: lb://USER-AUTH
+              predicates:
+                - Path=/api-gateway/user-auth/v3/api-docs
+
+  security:
+    user:
+      name: admin
+      password: admin
 
 eureka:
   client:

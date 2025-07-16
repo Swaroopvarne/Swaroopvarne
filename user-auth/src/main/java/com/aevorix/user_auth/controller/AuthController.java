@@ -1,14 +1,14 @@
 package com.aevorix.user_auth.controller;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpStatus;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.aevorix.common_service.apiResponse.BaseResponse;
 import com.aevorix.user_auth.AuthRequest.AuthRequest;
 import com.aevorix.user_auth.authenticationFilter.JwtUtil;
+import com.aevorix.user_auth.model.RegisterRequest;
+import com.aevorix.user_auth.model.User;
 import com.aevorix.user_auth.repo.UserRepository;
-import com.aevorix.user_auth.utility.User;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,69 +29,82 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final AuthenticationManager authenticationManager;
 	private final JwtUtil jwtUtil;
 
-	@PostMapping("/register")
-	public ResponseEntity<BaseResponse<String>> register(@RequestBody User user) {
-	    try {
-	        // Validate input fields
-	        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
-	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Email is required", null, LocalDateTime.now()));
-	        }
-	        if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
-	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Username is required", null, LocalDateTime.now()));
-	        }
-	        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
-	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Password is required", null, LocalDateTime.now()));
-	        }
-	        if (user.getMobileNumber() == null || user.getMobileNumber().trim().isEmpty()) {
-	            return ResponseEntity.badRequest().body(new BaseResponse<>(400, "Mobile number is required", null, LocalDateTime.now()));
-	        }
+	@PostMapping("/registerUser")
+	public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+		if (userRepository.findByEmail(req.getEmail()).isPresent()) {
+			return ResponseEntity.badRequest().body(BaseResponse.error(400, "Email already registered"));
+		}
+		if (userRepository.findByMobileNumber(req.getMobileNo()).isPresent()) {
+			return ResponseEntity.badRequest().body(BaseResponse.error(400, "Mobile number already registered"));
+		}
 
-	        // Check if email already exists
-	        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-	            return ResponseEntity.badRequest().body(new BaseResponse<>(409, "User with this email already exists", null, LocalDateTime.now()));
-	        }
+		String roleCode = req.getRole() != null ? req.getRole().toUpperCase() : "C";
+		String role;
 
-	        // Prepare and save user
-	        user.setPassword(passwordEncoder.encode(user.getPassword()));
-	        user.setRole(user.getRole());
-	        user.setStatus("A");
-	        user.setCreatedAt(LocalDateTime.now());
+		switch (roleCode) {
+		case "A":
+			return ResponseEntity.ok().body(BaseResponse.error(400, "Cannot self-register as ADMIN"));
+		case "E":
+			role = "ROLE_ENGINEER";
+			break;
+		case "C":
+		default:
+			role = "ROLE_CUSTOMER";
+			break;
+		}
 
-	        userRepository.save(user);
+		User user = new User();
+		user.setUsername(req.getUsername());
+		user.setEmail(req.getEmail());
+		user.setMobileNumber(req.getMobileNo());
+		user.setPassword(passwordEncoder.encode(req.getPassword()));
+		user.setRole(role);
+		user.setStatus("A");
 
-	        return ResponseEntity.ok(new BaseResponse<>(200, "User registered successfully", "Success", LocalDateTime.now()));
+		userRepository.save(user);
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return ResponseEntity.status(500).body(
-	                new BaseResponse<>(500, "An unexpected error occurred", e.getMessage(), LocalDateTime.now())
-	        );
-	    }
+		return ResponseEntity.ok(BaseResponse.success("User registered successfully", "Success"));
 	}
-
 
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@RequestBody AuthRequest request) {
-		authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-
-		User user = userRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new UsernameNotFoundException("User not found"));
+	public ResponseEntity<BaseResponse<?>> login(@RequestBody AuthRequest request) {
+		String loginField = request.getEmail() != null ? request.getEmail() : request.getMobileNo();
+		LocalDateTime now = LocalDateTime.now();
 
 		try {
-			String token = jwtUtil.generateToken(new org.springframework.security.core.userdetails.User(user.getEmail(),
-					user.getPassword(), List.of(new SimpleGrantedAuthority(user.getRole()))));
-
-			return ResponseEntity.ok(Map.of("token", token));
+			authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(loginField, request.getPassword()));
 		} catch (Exception e) {
-			e.printStackTrace(); // Log the actual cause
-			return ResponseEntity.status(HttpStatus.SC_INTERNAL_SERVER_ERROR)
-					.body("Token generation failed: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+					.body(new BaseResponse<>(HttpStatus.UNAUTHORIZED.value(), "Invalid credentials", null, now));
+		}
+
+		try {
+			User user = userRepository.findByEmail(request.getEmail())
+					.orElseGet(() -> userRepository.findByMobileNumber(request.getMobileNo()).orElseThrow(
+							() -> new UsernameNotFoundException("User not found with email/mobile: " + loginField)));
+
+			UserDetails userDetails = org.springframework.security.core.userdetails.User
+					.withUsername(user.getEmail() != null ? user.getEmail() : user.getMobileNumber())
+					.password(user.getPassword()).authorities(new SimpleGrantedAuthority(user.getRole())).build();
+
+			String token = jwtUtil.generateToken(userDetails);
+
+			return ResponseEntity
+					.ok(new BaseResponse<>(HttpStatus.OK.value(), "Login successful", Map.of("token", token), now));
+		} catch (UsernameNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new BaseResponse<>(HttpStatus.NOT_FOUND.value(), e.getMessage(), null, now));
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new BaseResponse<>(
+					HttpStatus.INTERNAL_SERVER_ERROR.value(), "Something went wrong: " + e.getMessage(), null, now));
 		}
 	}
+
 }
