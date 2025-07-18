@@ -19,14 +19,14 @@ public class JwtUtil {
 		this.jwtProperties = jwtProperties;
 	}
 	
-    public String generateToken(UserDetails userDetails) {
-        return Jwts.builder()
-            .setSubject(userDetails.getUsername())
-            .setIssuedAt(new Date())
-            .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs())) // 1 day
-            .signWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes()), SignatureAlgorithm.HS256)
-            .compact();
-    }
+//    public String generateToken(UserDetails userDetails) {
+//        return Jwts.builder()
+//            .setSubject(userDetails.getUsername())
+//            .setIssuedAt(new Date())
+//            .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpirationMs())) // 1 day
+//            .signWith(Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes()), SignatureAlgorithm.HS256)
+//            .compact();
+//    }
 
     public String extractUsername(String token) {
         return Jwts.parserBuilder()

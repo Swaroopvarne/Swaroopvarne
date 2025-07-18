@@ -41,7 +41,7 @@ public class AuthController {
 			return ResponseEntity.ok().body(BaseResponse.error(400, "Email already registered"));
 		}
 		if (userRepository.findByMobileNumber(req.getMobileNo()).isPresent()) {
-			return ResponseEntity.badRequest().body(BaseResponse.error(400, "Mobile number already registered"));
+			return ResponseEntity.ok().body(BaseResponse.error(400, "Mobile number already registered"));
 		}
 
 		String roleCode = req.getRole() != null ? req.getRole().toUpperCase() : "C";

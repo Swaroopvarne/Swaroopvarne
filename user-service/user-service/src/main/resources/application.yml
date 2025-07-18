@@ -38,5 +38,17 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    operationsSorter: method
+    path: /swagger-ui.html
     tagsSorter: alpha
+    operationsSorter: method
+    # Optional: title in browser tab
+    display-request-duration: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.aevorix: DEBUG
+
+jwt:
+ secret: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007a
