@@ -1,4 +1,4 @@
-package com.aevorix.user_auth.authenticationFilter;
+package com.aevorix.common_service.config;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -14,11 +14,11 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-//	private final JwtProperties jwtProperties;
-//
-//	public JwtUtil(JwtProperties jwtProperties) {
-//		this.jwtProperties = jwtProperties;
-//	}
+	private final JwtProperties jwtProperties;
+
+	public JwtUtil(JwtProperties jwtProperties) {
+		this.jwtProperties = jwtProperties;
+	}
 	@Value("${jwt.secret}")
 	private String secret;
 
@@ -43,4 +43,14 @@ public class JwtUtil {
 	public boolean isTokenValid(String token, UserDetails userDetails) {
 		return extractUsername(token).equals(userDetails.getUsername());
 	}
+	
+	  private boolean isTokenExpired(String token) {
+	        Date expiration = Jwts.parserBuilder()
+	                .setSigningKey(jwtProperties.getSecret().getBytes())
+	                .build()
+	                .parseClaimsJws(token)
+	                .getBody()
+	                .getExpiration();
+	        return expiration.before(new Date());
+	    }
 }

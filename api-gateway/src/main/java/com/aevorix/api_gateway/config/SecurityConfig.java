@@ -23,10 +23,13 @@ public class SecurityConfig {
             			    "/api-gateway/swagger-ui/**",
             			    "/api-gateway/v3/api-docs",
             			    "/api-gateway/swagger-resources/**",
-            			    "/api-gateway/webjars/**"
-            			).permitAll()
-                .anyExchange().authenticated()
-            )
+            			    "/api-gateway/webjars/**",
+            			    "/user-service/**"
+            			    ).permitAll()
+                    // everything else through api-gateway needs auth
+                    .pathMatchers("/api-gateway/user-service/**").authenticated()
+                    .anyExchange().permitAll() // other paths that don’t match above = no auth
+                )
             .httpBasic(Customizer.withDefaults());
 
         return http.build();

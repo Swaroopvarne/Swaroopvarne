@@ -38,8 +38,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 		String token = authHeader.substring(7);
 		try {
 			// Parse token & validate
-			Claims claims = Jwts.parser().setSigningKey(jwtSecret.getBytes()).parseClaimsJws(token).getBody();
-			// You can set claims into request attribute / context if needed
+			Claims claims = Jwts.parserBuilder()
+				    .setSigningKey(jwtSecret.getBytes())
+				    .build()
+				    .parseClaimsJws(token)
+				    .getBody();
+// You can set claims into request attribute / context if needed
 		} catch (Exception e) {
 			exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 			return exchange.getResponse().setComplete();
