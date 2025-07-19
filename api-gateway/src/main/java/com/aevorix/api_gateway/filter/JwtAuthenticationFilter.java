@@ -1,5 +1,7 @@
 package com.aevorix.api_gateway.filter;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -8,9 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -24,17 +23,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 		String path = exchange.getRequest().getURI().getPath();
 		System.out.println("==> Request path: " + path); // DEBUG
 
-		// ✅ Allow all /api/auth/** requests (like login/register)
-		if (path != null && ( path.equals("/api/auth/login") || 
-			    path.equals("/user-service/api/auth/login") ||
-			    path.startsWith("/api/auth/**") || 
-			    path.startsWith("/user-service/api/auth/registerUser") ||
-			    path.startsWith("/user-service/api/auth/verifyRegister")
-			)) {
+		// ✅ Allow these paths without JWT
+		if (isPublicPath(path)) {
 			return chain.filter(exchange);
 		}
 
-		// 🔐 JWT Token check
+		// 🔐 JWT Token validation
 		String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 		if (authHeader == null || !authHeader.startsWith("Bearer ")) {
 			exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -43,14 +37,29 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
 		String token = authHeader.substring(7);
 		try {
+			// Parse token & validate
 			Claims claims = Jwts.parser().setSigningKey(jwtSecret.getBytes()).parseClaimsJws(token).getBody();
-			// Token parsed successfully
+			// You can set claims into request attribute / context if needed
 		} catch (Exception e) {
 			exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
 			return exchange.getResponse().setComplete();
 		}
 
 		return chain.filter(exchange);
+	}
+
+	/**
+	 * Matches paths which should be public (no JWT required)
+	 */
+	private boolean isPublicPath(String path) {
+		return path != null && (path.equals("/api-gateway/user-auth/api/public/auth/login")
+				|| path.equals("/api-gateway/user-auth/api/public/auth/registerUser")
+				|| path.equals("/api-gateway/user-auth/api/auth/verifyRegister")
+				|| path.startsWith("/api-gateway/swagger-ui")
+				|| path.equals("/api-gateway/swagger-ui.html")
+				|| path.equals("/api-gateway/v3/api-docs")
+				|| path.startsWith("/api-gateway/swagger-resources")
+				|| path.startsWith("/api-gateway/webjars"));
 	}
 
 	@Override

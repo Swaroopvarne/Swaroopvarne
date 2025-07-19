@@ -9,17 +9,29 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 @Configuration
 public class GlobalCorsConfig {
 
-	@Bean
-	public CorsWebFilter corsWebFilter() {
-		CorsConfiguration config = new CorsConfiguration();
-		config.addAllowedOriginPattern("*"); // Use specific origin in prod
-		config.addAllowedMethod("*");
-		config.addAllowedHeader("*");
-		config.setAllowCredentials(true);
+    @Bean
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration config = new CorsConfiguration();
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
+        // Allow any origin pattern (use only in dev! In prod, put exact domain like "https://myapp.com")
+        config.addAllowedOriginPattern("*");
 
-		return new CorsWebFilter(source);
-	}
+        // Allow standard HTTP methods
+        config.addAllowedMethod("*"); // Or specify: "GET", "POST", "PUT", "DELETE", etc.
+
+        // Allow any header
+        config.addAllowedHeader("*");
+
+        // If you need to send cookies / Authorization header from browser JS
+        config.setAllowCredentials(true);
+
+        // How long the browser should cache the preflight response (optional)
+        config.setMaxAge(3600L); // seconds
+
+        // Register config for all routes
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return new CorsWebFilter(source);
+    }
 }
