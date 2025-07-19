@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.aevorix.common_service.apiResponse.BaseResponse;
+import com.aevorix.common_service.config.JwtUtil;
 import com.aevorix.user_auth.AuthRequest.AuthRequest;
-import com.aevorix.user_auth.authenticationFilter.JwtUtil;
 import com.aevorix.user_auth.model.RegisterRequest;
 import com.aevorix.user_auth.model.User;
 import com.aevorix.user_auth.repo.UserRepository;
